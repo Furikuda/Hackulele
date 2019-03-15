@@ -24,10 +24,39 @@ As all "SMART" things go, everybody on the [app's page](https://play.google.com/
 
 Okay here are the fun parts. The SMARTness of the thing is hidden in the easily unscrewable brown plastic part on the side of the instruments. Reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
 
+Top of the board:
 <img src="./docs/pics/top.jpg" width="500">
 
+Bottom of the board:
 <img src="./docs/pics/bottom.jpg" width="500">
 
+Connector to the LED matrix:
 <img src="./docs/pics/jst.jpg" width="500">
+
+My hackey senses are tingling at the sight of the RX/TX as well as SDIO/SCK pads there.... But well, we'll see.
+
+Main chip is a [Dialog 14580](./docs/DA14580_DS_v3.1.pdf) which looks pretty nice. The tiny thing on the side maybe be a flash but I didn't look into it.
+
+## The promise of UART & JTAG
+
+unfortunately, try as I might, my logic analyzer shows absolutely nothing on the UART & JTAG ports. the Dialog chip allows to programmatically disable those so no fun there.
+
+## OTA
+
+A cool feature of the Dialog chip is they offer to flash a new version of the Firmware Over The Air via bluetooth. The manufacturer only published one [new firmware](./docs/BleUKNoShowBat_XD_1988.img) that basically makes the lights blink even without bluetooth.
+
+You can push the new firmware via Dialog owns app.
+
+I couldn't find any previous research on the firmware format, so there is no way I can dump that in IDA.
+
+## Next avenue: BLE sniffing
+
+I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work, and haven't try to sniff the BLE traffic to write my own client to the board
+
+## Conclusion
+
+Fuck that board.
+
+
 
 
