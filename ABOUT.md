@@ -24,8 +24,10 @@ As all "SMART" things go, everybody on the [app's page](https://play.google.com/
 
 Okay here are the fun parts. The SMARTness of the thing is hidden in the easily unscrewable brown plastic part on the side of the instruments. Reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
 
-![top board](https://github.com/furikuda/hackulele/raw/master/doc/pics/top.jpg "Top of the board")
-![bottom  board](https://github.com/furikuda/hackulele/raw/master/doc/pics/bottom.jpg "bottom of the board")
+![](https://github.com/furikuda/hackulele/raw/master/docs/pics/top.jpg | width=48)
 
-![Weird JS style connector to the LED matrix](https://github.com/furikuda/hackulele/raw/master/doc/pics/jst.jpg "JST like connector")
+
+![bottom  board](https://github.com/furikuda/hackulele/raw/master/docs/pics/bottom.jpg)
+
+![Weird JS style connector to the LED matrix](https://github.com/furikuda/hackulele/raw/master/docs/pics/jst.jpg)
 
