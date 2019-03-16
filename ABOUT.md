@@ -39,7 +39,11 @@ Main chip is a [Dialog 14580](./docs/DA14580_DS_v3.1.pdf) which looks pretty nic
 
 ## The promise of UART & JTAG
 
-unfortunately, try as I might, my logic analyzer shows absolutely nothing on the UART & JTAG ports. the Dialog chip allows to programmatically disable those so no fun there.
+RX/TX means serial UART, let's connect my usual USB to RS232 thing to there and hope this will talk to me. NOPE.
+
+SDIO/SCK are definitely connected to the corresponding JTAG pins on the Dialog chip (P1_4/SWCLK & P1_5/SW_DIO) but again, no luck trying to talk to it.
+
+Unfortunately, try as I might, my logic analyzer shows absolutely nothing on the UART & JTAG ports. the Dialog chip allows to programmatically disable those so I guess there is no fun for me there.
 
 ## OTA
 
@@ -57,6 +61,7 @@ I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) wo
 
 Fuck that board.
 
+# My own
 
-
+Since I basically connected my logic analyzer on every fucking pad available there to see which one was doing anything, I quickly found that SDA/SCL are for the i2c bus.
 

@@ -4,6 +4,8 @@ OpenSource library to talk to a [Populele](https://popuband.com/products/populel
 
 ![](./docs/pics/awoo.gif)
 
+If you're interested about the story behind the project, and how this came up, I have [another doc](ABOUT.md) for you.
+
 ## Install
 
 The code should currently work on any board that can run Adafruit's [CircuitPython](https://circuitpython.readthedocs.io).
