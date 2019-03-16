@@ -25,13 +25,16 @@ As all "SMART" things go, everybody on the [app's page](https://play.google.com/
 Okay here are the fun parts. The SMARTness of the thing is hidden in the easily unscrewable brown plastic part on the side of the instruments. Reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
 
 Top of the board:
-<img src="./docs/pics/top.jpg" width="500">
+
+<img src="./docs/pics/top.jpg" width="300">
 
 Bottom of the board:
-<img src="./docs/pics/bottom.jpg" width="500">
+
+<img src="./docs/pics/bottom.jpg" width="300">
 
 Connector to the LED matrix:
-<img src="./docs/pics/jst.jpg" width="500">
+
+<img src="./docs/pics/jst.jpg" width="300">
 
 My hackey senses are tingling at the sight of the RX/TX as well as SDIO/SCK pads there.... But well, we'll see.
 
@@ -169,7 +172,7 @@ This is the raw i2c data sent to the LED matrix chip. Every line start with 0x74
 
 Upon boot, the populele will blink a row of LEDS, which I guessed are the last part here.
 
-Something feels funny already, they send these `0x74 0x08` commands all the time, once or twice. Nowhere in the [specification](docs/IS31FL3731.pdf) or even the [Application Notes](docs/IS31FL3731 Application Note Rev.C.pdf) does the manufacturer talks about these, so *shrug*.
+Something feels funny already, they send these `0x74 0x08` commands all the time, once or twice. Nowhere in the [specification](docs/IS31FL3731.pdf) or even the [Application Notes](docs/IS31FL3731%20Application%20Note%20Rev.C.pdf) does the manufacturer talks about these, so *shrug*.
 
 You grab some piece of code for arduino or any or your favorite microcontroler, you send this code, and get your blink. Yeah!
 
@@ -210,7 +213,7 @@ I have no idea what's going on in the mind of the people who wrote the code to t
 74 93 55
 ```
 
-That's 30 instructions instead of 85....
+That's 30 instructions instead of 85.... what were they thinking?
 
 Looking at the datasheet is kind of hilarious too.
 
@@ -221,3 +224,29 @@ The chip can store the state of LEDs in 8 pages, and the ninth page, being for w
 Some other typos.
 
 <img src="./docs/pics/lolsheet2.jpg" width="500">
+
+## Arduino vs Python
+
+Writing code for Arduino is not too bad, but C++ still kind of sucks. The compilation/upload of the code is annoying to set up for command line. Timing is not too tight in this application, so I decide do buy some fancy MicroPython (or the CircuitPython fork) with BLE as well as integrated battery charging module [https://www.adafruit.com/product/2995](from adafruit).
+
+It's kind of beefy, probably uses a lot more battery than its [nRF52840](https://www.adafruit.com/product/4062) counterpart, but looks more supported by the CircuitPython stack.
+
+## Alligator clips vs soldered board that tries to follow specs.
+
+For around a week, I tried to build a little adapter board that would sit between the Feather board and the LED matrix. I wanted to follow the application notes, control SDB & INT properly (instead of connecting them to VCC and GND), add some power supply filtering capacitors, and even switch power to the chip with a 2N2222.... AND NOTHING WOULD EVER WORK AGAIN.
+
+This was a very frustrating experience, where everything would fail in various ways I couldn't find possible. I2C would just stop working after a fixed amount of data was transfered for absolutely no reason, it was maddening.
+
+Going back to alligator clips and the absolute minimum number of components to make the thing work (2 pull up resistors), after a full week of trials and 100% of errors, I got the thing to comply again.
+
+the [README.md](readme file) has info about how to connect everything.
+
+# Future research
+
+Being able to sniff the BLE traffic between the android app and the original board could be fun. I'd love to be able to actually push a new firmware of mine on the Dialog chip.
+
+The Led matrix chip has a bunch of fun functionalities such as 8 frame animations, 'breathing' mode.
+
+I think the current approach for displaying some kind of spectrum on the fret board is listening to you play using the phone's microphone, then tell over bluetooth what data to display. It would be fun to have a mic connected on the Analog PIN of the Feather board to do the analysis there.
+
+Add more animations!
