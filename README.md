@@ -2,6 +2,7 @@
 
 OpenSource library to talk to a [Populele](https://popuband.com/products/populele-with-accessory)'s Led matrix
 
+![](./docs/pics/awoo.gif)
 
 ## Install
 
