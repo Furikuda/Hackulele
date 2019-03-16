@@ -63,5 +63,161 @@ Fuck that board.
 
 # My own
 
+## Who are you Mr Chip 
+
 Since I basically connected my logic analyzer on every fucking pad available there to see which one was doing anything, I quickly found that SDA/SCL are for the i2c bus.
 
+The others are either pulled high or low while operating, so I don't bother about those much, and connect them accordingly to GND or VCC from an arduino.
+
+Using [PulseView](https://sigrok.org/wiki/PulseView) to decode the i2c protocol I get a trace that shows expected blobs of writing an i2c address (0x74) for the Populele and one or two more byte.
+
+Unfortunately the LED driver chip is buried somewhere in the instrument, so I just save the i2c startup/operation sequence into a file and try to make sense out of it.
+
+Knowing the i2c address can help figure out what chip you're talking to. Using the nice [i2c addresses list](https://learn.adafruit.com/i2c-addresses/the-list) provided by Adafruit, you end up with either a HT16K33 or IS31FL3731.
+
+## The I2C trace
+
+This is the raw i2c data sent to the LED matrix chip. Every line start with 0x74 as this is the i2c address.
+
+```
+74 08
+74 08
+74 FD 0B
+74 08
+74 0A 00
+74 08
+74 FD 00
+74 08
+74 00 FF
+74 08
+74 02 FF
+74 08
+74 04 FF
+74 08
+74 06 FF
+74 08
+74 08 FF
+74 08
+74 0A FF
+74 08
+74 0C FF
+74 08
+74 0E FF
+74 08
+74 10 00
+74 08
+74 01 00
+74 08
+74 03 00
+74 08
+74 05 00
+74 08
+74 07 00
+74 08
+74 09 00
+74 08
+74 0B 00
+74 08
+74 0D FF
+74 08
+74 0F 00
+74 08
+74 11 00
+74 08
+74 FD 0B
+74 08
+74 00 00
+74 08
+74 01 00
+74 08
+74 02 01
+74 08
+74 03 02
+74 08
+74 05 01
+74 08
+74 06 00
+74 08
+74 08 00
+74 08
+74 09 00
+74 08
+74 0A 01
+74 08
+74 FD 0B
+74 08
+74 0A 00
+74 08
+74 FD 0B
+74 08
+74 0A 01
+74 08
+74 FD 00
+74 08
+74 08
+74 90 55
+74 08
+74 08
+74 91 55
+74 08
+74 08
+74 92 55
+74 08
+74 08
+74 93 55
+```
+
+Upon boot, the populele will blink a row of LEDS, which I guessed are the last part here.
+
+Something feels funny already, they send these `0x74 0x08` commands all the time, once or twice. Nowhere in the [specification](docs/IS31FL3731.pdf) or even the [Application Notes](docs/IS31FL3731 Application Note Rev.C.pdf) does the manufacturer talks about these, so *shrug*.
+
+You grab some piece of code for arduino or any or your favorite microcontroler, you send this code, and get your blink. Yeah!
+
+## WTF is this all about?
+
+I have no idea what's going on in the mind of the people who wrote the code to talk to the chip, but there is a lot of redundancy. Here is the code, doing the same thing, without all the useless crap:
+
+```
+74 FD 0B # Open 'Page Nine' or Settings page
+74 0A 00 # Set shutdown = true
+74 FD 00 # Open Page 1
+74 00 FF # Select all LEDs in matrix A as being used
+74 02 FF
+74 04 FF
+74 06 FF
+74 08 FF
+74 0A FF
+74 0C FF
+74 0E FF
+74 10 00 # Except CA9
+74 01 00 # Select all LEDs in matrix B as being unused
+74 03 00
+74 05 00
+74 07 00
+74 09 00
+74 0B 00
+74 0D FF # Except CB7
+74 0F 00
+74 11 00
+74 FD 0B
+74 00 00 # Set pictre mode
+74 FD 0B
+74 0A 01 # Undo shutdown
+74 FD 00 # Select page 1
+74 90 55 # Light up LED from 0x90 to 0x93
+74 91 55
+74 92 55
+74 93 55
+```
+
+That's 30 instructions instead of 85....
+
+Looking at the datasheet is kind of hilarious too.
+
+The chip can store the state of LEDs in 8 pages, and the ninth page, being for whatever reason at address 0x0B, is called a bit strangely sometimes.
+
+<img src="./docs/pics/lolsheet1.jpg" width="500">
+
+Some other typos.
+
+<img src="./docs/pics/lolsheet2.jpg" width="500">
