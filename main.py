@@ -6,6 +6,8 @@ import busio
 
 from digitalio import DigitalInOut, Direction
 
+from animations import scroll
+
 # Doc:
 # https://circuitpython.readthedocs.io/en/3.x/shared-bindings/busio/I2C.html
 # https://circuitpython.readthedocs.io/projects/busdevice/en/latest/api.html
@@ -36,14 +38,6 @@ STRINGS = [
 ]
 # pylint: enable=line-too-long
 
-FONT3x4 = {
-    # One byte per 'column' of pixels
-    'A': [0x7, 0xA, 0x7],
-    'O': [0x6, 0x9, 0x6],
-    'W': [0xF, 0x2, 0xF],
-    '!': [0xD],
-    ' ': [0x0, 0x0, 0x0]
-}
 
 class Populele():
   """Class for a Populele"""
@@ -187,17 +181,18 @@ class Populele():
       self.SetPixel(position if x < 4 else position+1, x, val)
       byte = byte >> 1
 
-  def SetChar(self, char, position):
+  def SetChar(self, char, font, position):
     """Displays an ASCII character at a position.
 
     Args:
       char(list): list of nibbles that display a character.
+      font(dict): the font to use.
       position(int): at which X position to display it.
 
     Returns:
       int: the number of columns set.
     """
-    cc = FONT3x4.get(char, [0x00])
+    cc = font.get(char, [0x00])
     i = 0
     for c in cc:
       if position+i <= 17:
@@ -205,11 +200,12 @@ class Populele():
       i += 1
     return i
 
-  def SetString(self, string, position, wrap=True):
+  def SetString(self, string, font, position, wrap=True):
     """Sets a string of ASCII characters in the frame.
 
     Args:
       string(list(list(byte)): the characters list.
+      font(dict): the font to use.
       position(int): where to start displaying the string.
       wrap(bool): whether we need to wrap back to the beggining.
     """
@@ -217,7 +213,7 @@ class Populele():
     if wrap:
       p = p % 18
     for char in string:
-      size = self.SetChar(char, p)
+      size = self.SetChar(char, font, p)
       p = (p+size+1)
       if wrap:
         p = p % 18
@@ -250,25 +246,25 @@ popu = Populele()
 popu.Init()
 
 col = 0
-scroll_string = (
-    FONT3x4[' ']+[0x0]+
-    FONT3x4[' ']+[0x0]+
-    FONT3x4['A']+[0x0]+
-    FONT3x4['W']+[0x0]+
-    FONT3x4['O']+[0x0]+
-    FONT3x4['O']+[0x0]+
-    FONT3x4['!']+
-    FONT3x4['!']
-)
 
 def Rotate(ss):
   """Rotate the string."""
   return ss[1:]+ss[:1]
 
+animation = scroll.ScrollAnimator(popu)
+animation.SetText('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+
 while True:
-  popu.SetAll(LED_OFF)
-  popu.SetBytes(scroll_string, 0, wrap=False)
+  animation.Draw()
   popu.ShowFrame()
-  scroll_string = Rotate(scroll_string)
-  col = (col+1)
-  time.sleep(0.1)
+  ival = animation.interval
+  while ival > 0:
+    # We still have time to do work
+
+    # Run the animation timing
+    if ival > 50:
+      time.sleep(0.05)
+      ival -= 50
+    else:
+      time.sleep(ival/1000)
+      ival = 0
