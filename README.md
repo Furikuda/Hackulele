@@ -39,3 +39,11 @@ Then put INT to GND, and SDB to pin D10.
 Also remember SCL & SDA need to be Pull'ed UP, so connect them to 5V via a 4.7K resistor for each line.
 
 Stuff everything back into the ukulele and you should be good to go.
+
+## Add your own animations
+
+This project is heavily influenced by the [Best Badge Ever](https://github.com/oskirby/dc26-fur-scripts).
+
+The main script calls whatever animation object `Draw()` method every `interval` milliseconds. Use this to refresh the `Populele` object internal state with its public methods.
+
+See `animations/scroll.py` for an example.
