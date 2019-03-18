@@ -7,8 +7,9 @@ import busio
 from digitalio import DigitalInOut, Direction
 
 #pylint: disable=unused-import
-from animations import scroll
 from animations import k2000
+from animations import pong
+from animations import scroll
 #pylint: enable=unused-import
 
 # Doc:
@@ -51,6 +52,12 @@ class Populele():
     self.i2c = i2c
 
     self.frame_1 = bytearray('\00'*POPULELE_NB_LEDS)
+
+  def HasPixel(self, x, y):
+    """Returns True if pixel exists."""
+    if (x >= 0) and (x < 18) and (y >= 0) and (y < 4):
+      return True
+    return False
 
   def SetAll(self, val):
     """Sets all the pixels in the frame to the same value.
@@ -259,7 +266,8 @@ def Rotate(ss):
 
 #animation = scroll.ScrollAnimator(popu)
 #animation.SetText('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-animation = k2000.K2000Animator(popu)
+#animation = k2000.K2000Animator(popu)
+animation = pong.PongAnimator(popu)
 
 while True:
   animation.Draw()
