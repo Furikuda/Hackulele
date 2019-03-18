@@ -15,7 +15,7 @@ class ScrollAnimator(Animator):
     self._position = 0
     self.SetFont(FONT3x4)
 
-    self.interval=200
+    self.interval = 200
 
   def SetFont(self, font):
     """Change the font used to display the text.

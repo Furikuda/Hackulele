@@ -6,7 +6,10 @@ import busio
 
 from digitalio import DigitalInOut, Direction
 
+#pylint: disable=unused-import
 from animations import scroll
+from animations import k2000
+#pylint: enable=unused-import
 
 # Doc:
 # https://circuitpython.readthedocs.io/en/3.x/shared-bindings/busio/I2C.html
@@ -166,18 +169,21 @@ class Populele():
     for a in range(POPULELE_NB_LEDS):
       self.i2c.writeto(POPULELE_I2C_ADDR, bytes([a + POPULELE_BASE_LED, val]))
 
-  def SetCol(self, the_byte, position):
+  def SetCol(self, the_byte, position, value=LED_ON):
     """Sets a 'column' (all 4 strings for a fret position).
 
     Args:
       the_byte(byte): the state of the columnt (bit pos = LED status).
       position(int): which column to set.
+      value(byte): the PWM value for the LEDs.
     """
+    if position < 0:
+      return
     if position > 17:
       return
     byte = the_byte & 0x0F
     for x in range(4):
-      val = LED_ON if (byte & 1) else LED_OFF
+      val = value if (byte & 1) else LED_OFF
       self.SetPixel(position if x < 4 else position+1, x, val)
       byte = byte >> 1
 
@@ -251,20 +257,22 @@ def Rotate(ss):
   """Rotate the string."""
   return ss[1:]+ss[:1]
 
-animation = scroll.ScrollAnimator(popu)
-animation.SetText('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+#animation = scroll.ScrollAnimator(popu)
+#animation.SetText('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+animation = k2000.K2000Animator(popu)
 
 while True:
   animation.Draw()
+#  popu.DebugFrame()
   popu.ShowFrame()
   ival = animation.interval
   while ival > 0:
     # We still have time to do work
 
     # Run the animation timing
-    if ival > 50:
-      time.sleep(0.05)
-      ival -= 50
+    if ival > 20:
+      time.sleep(0.02)
+      ival -= 20
     else:
       time.sleep(ival/1000)
       ival = 0
