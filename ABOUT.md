@@ -1,6 +1,6 @@
 # Hackulele
 
-I was bored abroad and missed my ukulele to just occupy my hands. Turned out some other dude was selling one of his [Populele](https://popuband.com/products/populele-with-accessory) for pretty cheap, so I bought it to have a travel uke, and also because OMG BLINKING LIGHTS. 
+I was bored abroad and missed my ukulele to just occupy my hands. Turned out some other dude was selling one of his [Populele](https://popuband.com/products/populele-with-accessory) for pretty cheap, so I bought it to have a travel uke, and also because OMG BLINKING LIGHTS.
 
 ## Unboxing
 
@@ -16,7 +16,7 @@ The point of the whole thing is you're supposed to use bloated ugly and slow ass
 
 After you go through the unskippable "tutorial" that will drive everybody crazy, it can shows you chords, you can 'draw', and other things.
 
-It tries to gamify the learning process, has songbooks and stuff. 
+It tries to gamify the learning process, has songbooks and stuff.
 
 As all "SMART" things go, everybody on the [app's page](https://play.google.com/store/apps/details?id=com.gt.populeleinternational&hl=en&showAllReviews=true) complains about shitty bluetooth connection, bugs, etc. The whole thing is just absolutely frustrating to use and barely works as expected. Also probably comes with free remote management of your Android device ¯\\\_(?)\_/¯
 
@@ -58,15 +58,48 @@ I couldn't find any previous research on the firmware format, so there is no way
 
 ## Next avenue: BLE sniffing
 
-I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work, and haven't try to sniff the BLE traffic to write my own client to the board
+I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work, but nRF52 devkit worked like a charm.
 
-## Conclusion
+### nRF52 DK
 
-Fuck that board.
+the [nRF52 development kit](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK) by dialog can be used to sniff BLE traffic. It's actually pretty neat, just [download a zip bundle with everything you need](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Sniffer/Download#infotabs) and follow the [Documentation](http://infocenter.nordicsemi.com/pdf/nRF_Sniffer_UG_v2.2.pdf).
 
-# My own
+Once everything is set up you just need to launch WireShark, pair your populele with the app, and look at traffic.
 
-## Who are you Mr Chip 
+It is kind of super verbose, the populele keeps sending multiple heartbeats per second, try to deselect those and only look for commands sent by the "master" (the phone):
+
+```
+(!(btle.data_header.length == 0)) && !(btatt.handle == 0x0020)
+```
+
+### Bluetooth data
+
+To set the state of LEDs, the phone sends 19 bytes of data on the attribute handle `0x0024` (UUID is `0000dc8600001000800000805f9b34fb` ).
+
+```
+f1 GG GG GG CC CC CC EE EE EE AA AA AA 00 00 00 00 00 00
+^^ +- header?
+   ^ State of the G string LEDs
+            ^ State of the C string LEDs
+                     ^ State of the E string LEDs
+                              ^ State of the A string LEDS
+                                       ^ No idea what's going on there
+```
+
+While each string has 18 frets, and 18 LEDs, it looks like you can only select 17. If counting frets from the nut, each group of 3 bytes are used to set the state of a string like so:
+
+```
+  'F0'    'F0'    'F0'
+111100001111000011110000
+^ Fret 0 LED
+ ^ Fret 1 Led
+  ...
+                ^ Fret 17 (last one)
+```
+
+# My own board
+
+## Who are you Mr Chip
 
 Since I basically connected my logic analyzer on every fucking pad available there to see which one was doing anything, I quickly found that SDA/SCL are for the i2c bus.
 
