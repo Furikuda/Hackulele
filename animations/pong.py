@@ -15,8 +15,8 @@ class PongAnimator(Animator):
     self.updown = 1
     self.leftright = 1
     self.bouncecount = 0
-    self.x = random.randrange(0, 18-1)
-    self.y = random.randrange(0, 4-1)
+    self.x = random.randrange(0, self._populele.NB_COLS-1)
+    self.y = random.randrange(0, self._populele.NB_ROWS-1)
 
   def _Bounce(self):
     nx = self.x + self.leftright
@@ -38,8 +38,8 @@ class PongAnimator(Animator):
 
   def Draw(self):
     self._Bounce()
-    self._populele.SetAll(0x00)
-    self._populele.SetPixel(self.x, self.y, 0x00)
+    self._populele.SetAll(self._populele.LED_OFF)
+    self._populele.SetPixel(self.x, self.y, self._populele.LED_OFF)
     self.x += self.leftright
     self.y += self.updown
-    self._populele.SetPixel(self.x, self.y, 0xFF)
+    self._populele.SetPixel(self.x, self.y, self._populele.LED_ON)

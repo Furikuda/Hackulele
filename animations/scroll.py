@@ -10,12 +10,13 @@ class ScrollAnimator(Animator):
   def __init__(self, *args, **kwargs):
     """Initializes a ScrollAnimation object."""
     super(ScrollAnimator, self).__init__(*args, **kwargs)
-    self._text = 'AWOO!'
     self._scrolldata = [0x00]*16
     self._position = 0
     self.SetFont(FONT3x4)
 
     self.interval = 200
+
+    self.SetText('AWOO!')
 
   def SetFont(self, font):
     """Change the font used to display the text.
@@ -41,7 +42,7 @@ class ScrollAnimator(Animator):
     self._scrolldata += self._TextToBytes(text)
 
   def Draw(self):
-    for x in range(0, 18):
+    for x in range(0, self._populele.NB_COLS):
       colbits = self._scrolldata[(self._position + x) % len(self._scrolldata)]
       self._populele.SetCol(colbits, x)
     self._position = (self._position + 1) % len(self._scrolldata)

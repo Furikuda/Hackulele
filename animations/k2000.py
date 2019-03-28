@@ -2,7 +2,6 @@
 
 from animations import Animator
 
-
 class K2000Animator(Animator):
   """Animator for a K2000 effect."""
 
@@ -13,14 +12,16 @@ class K2000Animator(Animator):
     self.interval = 50
     self._column = 0
     self.leftright = True
+    self.led_on = self._populele.LED_ON
+    self.led_off = self._populele.LED_OFF
 
   def Draw(self):
-    self._populele.SetAll(0x00)
-    self._populele.SetCol(0xFF, self._column-2, value=0x10)
-    self._populele.SetCol(0xFF, self._column-1, value=0x20)
-    self._populele.SetCol(0xFF, self._column, value=0x55)
-    self._populele.SetCol(0xFF, self._column+1, value=0x20)
-    self._populele.SetCol(0xFF, self._column+2, value=0x10)
+    self._populele.SetAll(self.led_off)
+    self._populele.SetCol(0x0F, self._column-2, value=0x10)
+    self._populele.SetCol(0x0F, self._column-1, value=0x20)
+    self._populele.SetCol(0x0F, self._column, value=0x55)
+    self._populele.SetCol(0x0F, self._column+1, value=0x20)
+    self._populele.SetCol(0x0F, self._column+2, value=0x10)
 
 
     if self.leftright:
