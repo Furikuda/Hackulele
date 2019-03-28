@@ -252,6 +252,8 @@ I have no idea what's going on in the mind of the people who wrote the code to t
 
 That's 30 instructions instead of 85.... what were they thinking?
 
+All the communications to the LED matrix also has these extra 0x80 being sent. Using your own board means you get rid of them and be able to refresh the matrix way faster (except if you use slow as hell CircuitPython like I do lol).
+
 Looking at the datasheet is kind of hilarious too.
 
 The chip can store the state of LEDs in 8 pages, and the ninth page, being for whatever reason at address 0x0B, is called a bit strangely sometimes.
