@@ -1,4 +1,6 @@
-"""TODO"""
+"""Base animator class"""
+
+#pylint: disable=useless-object-inheritance
 
 class Animator(object):
   """Interface for an Animator object.
