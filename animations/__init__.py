@@ -1,6 +1,6 @@
 """TODO"""
 
-class Animator():
+class Animator(object):
   """Interface for an Animator object.
 
     Attributes:
