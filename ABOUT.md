@@ -20,6 +20,8 @@ It tries to gamify the learning process, has songbooks and stuff.
 
 As all "SMART" things go, everybody on the [app's page](https://play.google.com/store/apps/details?id=com.gt.populeleinternational&hl=en&showAllReviews=true) complains about shitty bluetooth connection, bugs, etc. The whole thing is just absolutely frustrating to use and barely works as expected. Also probably comes with free remote management of your Android device ¯\\\_(?)\_/¯
 
+To add insult to injury, you won't even be able to light up the LEDs from the last fret, because reasons.
+
 # Hacking
 
 Okay here are the fun parts. The SMARTness of the thing is hidden in the easily unscrewable brown plastic part on the side of the instruments. Reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
@@ -56,7 +58,7 @@ You can push the new firmware via Dialog owns app.
 
 I couldn't find any previous research on the firmware format, so there is no way I can dump that in IDA.
 
-## Next avenue: BLE sniffing
+## BLE sniffing
 
 I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work, but nRF52 devkit worked like a charm.
 
@@ -83,10 +85,10 @@ f1 GG GG GG CC CC CC EE EE EE AA AA AA 00 00 00 00 00 00
             ^ State of the C string LEDs
                      ^ State of the E string LEDs
                               ^ State of the A string LEDS
-                                       ^ No idea what's going on there
+                                       ^ Probably padding
 ```
 
-While each string has 18 frets, and 18 LEDs, it looks like you can only select 17. If counting frets from the nut, each group of 3 bytes are used to set the state of a string like so:
+While each string has 18 frets, which means 18 LEDs. If counting frets from the nut, each group of 3 bytes are used to set the state of a string like so:
 
 ```
   'F0'    'F0'    'F0'
@@ -94,8 +96,10 @@ While each string has 18 frets, and 18 LEDs, it looks like you can only select 1
 ^ Fret 0 LED
  ^ Fret 1 Led
   ...
-                ^ Fret 17 (last one)
+                 ^ Fret 17 (last one)
 ```
+
+You just need to send 1 GATT message over the service exposed by the Populele to set the whole LED array, albeit with no control over the brightness.
 
 # My own board
 
