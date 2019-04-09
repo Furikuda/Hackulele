@@ -8,23 +8,21 @@ Haha. No.
 
 ## Playing
 
-You can make pleasant noises with it. Just train for a couple years or more.
+You can make pleasant noises with it. Just exercise & train for a couple years or more.
 
 ## App
 
-The point of the whole thing is you're supposed to use bloated ugly and slow ass app to connect to your uke over bluetooth, so it can send it commands to light the blinky lights.
+The point of the whole thing is you're supposed to use a bloated, kind of ugly and slow-ass app to connect to your uke over bluetooth, so it can send it commands to light the blinky lights.
 
-After you go through the unskippable "tutorial" that will drive everybody crazy, it can shows you chords, you can 'draw', and other things.
-
-It tries to gamify the learning process, has songbooks and stuff.
+The app tries to gamify the learning process, has songbooks and stuff.
 
 As all "SMART" things go, everybody on the [app's page](https://play.google.com/store/apps/details?id=com.gt.populeleinternational&hl=en&showAllReviews=true) complains about shitty bluetooth connection, bugs, etc. The whole thing is just absolutely frustrating to use and barely works as expected. Also probably comes with free remote management of your Android device ¯\\\_(?)\_/¯
 
-To add insult to injury, you won't even be able to light up the LEDs from the last fret, because reasons.
+To add insult to injury, you won't even be able to light up the LEDs from the last fret throught the app, because reasons.
 
 # Hacking
 
-Okay here are the fun parts. The SMARTness of the thing is hidden in the easily unscrewable brown plastic part on the side of the instruments. Reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
+The SMARTness of the thing is hidden in the brown plastic part on the side of the instruments. It reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
 
 Top of the board:
 
@@ -40,15 +38,17 @@ Connector to the LED matrix:
 
 My hackey senses are tingling at the sight of the RX/TX as well as SDIO/SCK pads there.... But well, we'll see.
 
-Main chip is a [Dialog 14580](./docs/DA14580_DS_v3.1.pdf) which looks pretty nice. The tiny thing on the side maybe be a flash but I didn't look into it.
+Main chip is a [Dialog 14580](./docs/DA14580_DS_v3.1.pdf) which looks pretty nice.
+
+The tiny thing on the side with 8 pins & marked "5F2 A71 TOG" maybe be a flash but I couldn't find anything with that reference on the Googlez.
 
 ## The promise of UART & JTAG
 
-RX/TX means serial UART, let's connect my usual USB to RS232 thing to there and hope this will talk to me. NOPE.
+RX/TX means serial UART, so I'll connect my usual USB to RS232 thing to there and hope this will talk to me. NOPE.
 
 SDIO/SCK are definitely connected to the corresponding JTAG pins on the Dialog chip (P1_4/SWCLK & P1_5/SW_DIO) but again, no luck trying to talk to it.
 
-Unfortunately, try as I might, my logic analyzer shows absolutely nothing on the UART & JTAG ports. the Dialog chip allows to programmatically disable those so I guess there is no fun for me there.
+Unfortunately, try as I might, my logic analyzer shows absolutely nothing on the UART & JTAG ports. the Dialog chip allows to programmatically disable those so I guess the manufacturer did that there is no fun for me there.
 
 ## OTA
 
@@ -56,17 +56,17 @@ A cool feature of the Dialog chip is they offer to flash a new version of the Fi
 
 You can push the new firmware via Dialog owns app.
 
-I couldn't find any previous research on the firmware format, so there is no way I can dump that in IDA.
+I couldn't find any previous research on the firmware format, and IDA didn't really help me right away, also I'm no reverse engineer.
 
 ## BLE sniffing
 
-I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work, but nRF52 devkit worked like a charm.
+In the past I have been unable to make [BTLEJack](https://github.com/virtualabs/btlejack) work reliable, but nRF52 devkit worked like a charm for me. This one is not able to sniff onto already connected devices, unlike what BTLEJack promises. YMMV.
 
 ### nRF52 DK
 
-the [nRF52 development kit](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK) by dialog can be used to sniff BLE traffic. It's actually pretty neat, just [download a zip bundle with everything you need](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Sniffer/Download#infotabs) and follow the [Documentation](http://infocenter.nordicsemi.com/pdf/nRF_Sniffer_UG_v2.2.pdf).
+the [nRF52 development kit](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK) by Nordic can be used to sniff BLE traffic. It's actually pretty neat, just [download a zip bundle with everything you need](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF-Sniffer/Download#infotabs) and follow the [Documentation](http://infocenter.nordicsemi.com/pdf/nRF_Sniffer_UG_v2.2.pdf).
 
-Once everything is set up you just need to launch WireShark, pair your populele with the app, and look at traffic.
+Once everything is set up you just need to launch WireShark, start sniffing, then pair your populele with the app, and look at traffic.
 
 It is kind of super verbose, the populele keeps sending multiple heartbeats per second, try to deselect those and only look for commands sent by the "master" (the phone):
 
@@ -76,19 +76,19 @@ It is kind of super verbose, the populele keeps sending multiple heartbeats per 
 
 ### Bluetooth data
 
-To set the state of LEDs, the phone sends 19 bytes of data on the attribute handle `0x0024` (UUID is `0000dc8600001000800000805f9b34fb` ).
+To set the state of LEDs, the phone sends 19 bytes of data on the GATT service with attribute handle `0x0024` (UUID is `0000dc8600001000800000805f9b34fb` ). A normal frame looks like so:
 
 ```
 f1 GG GG GG CC CC CC EE EE EE AA AA AA 00 00 00 00 00 00
-^^ +- header?
-   ^ State of the G string LEDs
-            ^ State of the C string LEDs
-                     ^ State of the E string LEDs
-                              ^ State of the A string LEDS
+^^ Header
+   ^^ ^^ ^^ State of the G string LEDs
+            ^^ ^^ ^^ State of the C string LEDs
+                     ^^ ^^ ^^ State of the E string LEDs
+                              ^^ ^^ ^^ State of the A string LEDS
                                        ^ Probably padding
 ```
 
-While each string has 18 frets, which means 18 LEDs. If counting frets from the nut, each group of 3 bytes are used to set the state of a string like so:
+On the Ukulele, each string has 18 frets/LEDs. If counting frets from the nut, each group of 3 bytes are used to set the state of a string like so:
 
 ```
   'F0'    'F0'    'F0'
@@ -101,13 +101,15 @@ While each string has 18 frets, which means 18 LEDs. If counting frets from the 
 
 You just need to send 1 GATT message over the service exposed by the Populele to set the whole LED array, albeit with no control over the brightness.
 
+Unfortunately, some tests with animations with a bit more than 10 updates per second quickly make te BLE conection unstable, again YMMV.
+
 # My own board
 
 ## Who are you Mr Chip
 
-Since I basically connected my logic analyzer on every fucking pad available there to see which one was doing anything, I quickly found that SDA/SCL are for the i2c bus.
+Since I basically connected my logic analyzer on every fucking pad available on the original board to see which one was doing anything, I quickly found that pads labelled SDA/SCL are for the i2c bus.
 
-The others are either pulled high or low while operating, so I don't bother about those much, and connect them accordingly to GND or VCC from an arduino.
+The others are either pulled high or low while operating, so I don't bother about those much, and connect them accordingly to GND or VCC from an Arduino.
 
 Using [PulseView](https://sigrok.org/wiki/PulseView) to decode the i2c protocol I get a trace that shows expected blobs of writing an i2c address (0x74) for the Populele and one or two more byte.
 
@@ -209,9 +211,11 @@ This is the raw i2c data sent to the LED matrix chip. Every line start with 0x74
 
 Upon boot, the populele will blink a row of LEDS, which I guessed are the last part here.
 
-Something feels funny already, they send these `0x74 0x08` commands all the time, once or twice. Nowhere in the [specification](docs/IS31FL3731.pdf) or even the [Application Notes](docs/IS31FL3731%20Application%20Note%20Rev.C.pdf) does the manufacturer talks about these, so *shrug*.
+One of the first i2c command sent start with 0xFD. This is one is being re-used every know and then and actually matches the IS31FL37XX series.
 
-You grab some piece of code for arduino or any or your favorite microcontroler, you send this code, and get your blink. Yeah!
+Something feels funny already, the controller sends these `0x74 0x08` i2c packets all the time, once or twice. Nowhere in the [specification](docs/IS31FL3731.pdf) or even the [Application Notes](docs/IS31FL3731%20Application%20Note%20Rev.C.pdf) does the manufacturer talks about these, so *shrug*.
+
+You grab some piece of code for arduino or any other microcontroler with at least 2 GPIO and a i2c library, you send this code, and get your blink. Yeah!
 
 ## WTF is this all about?
 
@@ -266,26 +270,32 @@ Some other typos.
 
 ## Arduino vs Python
 
-Writing code for Arduino is not too bad, but C++ still kind of sucks. The compilation/upload of the code is annoying to set up for command line. Timing is not too tight in this application, so I decide do buy some fancy MicroPython (or the CircuitPython fork) with BLE as well as integrated battery charging module [https://www.adafruit.com/product/2995](from adafruit).
+Writing code for Arduino is not too bad, but C++ still kind of sucks, mostly because I'm quite the programming tench, hate pointers and semi-colons, and also because the compilation/upload of the code is annoying to set up for command line environment. Timing is not too tight in this application, so I decide do buy some fancy MicroPython (or the CircuitPython fork) with BLE as well as integrated battery charging module [https://www.adafruit.com/product/2995](from adafruit).
 
 It's kind of beefy, probably uses a lot more battery than its [nRF52840](https://www.adafruit.com/product/4062) counterpart, but looks more supported by the CircuitPython stack.
 
 ## Alligator clips vs soldered board that tries to follow specs.
 
-For around a week, I tried to build a little adapter board that would sit between the Feather board and the LED matrix. I wanted to follow the application notes, control SDB & INT properly (instead of connecting them to VCC and GND), add some power supply filtering capacitors, and even switch power to the chip with a 2N2222.... AND NOTHING WOULD EVER WORK AGAIN.
+For around a week, I tried to build a little adapter board that would sit between the Feather board and the LED matrix. I wanted to follow the application notes, control SDB & INT properly (instead of connecting them to VCC and GND), add some power supply filtering capacitors, and even make a nice power switch by controlling a 2N2222 with another GPIO.... AND NOTHING WOULD EVER WORK AGAIN, AND FAIL IN WEIRD AND EXOTIC WAYS.
 
-This was a very frustrating experience, where everything would fail in various ways I couldn't find possible. I2C would just stop working after a fixed amount of data was transfered for absolutely no reason, it was maddening.
+This was a very frustrating experience, i2c would just stop working after a fixed amount of data was transfered for absolutely no reason, it was maddening.
 
 Going back to alligator clips and the absolute minimum number of components to make the thing work (2 pull up resistors), after a full week of trials and 100% of errors, I got the thing to comply again.
 
-the [README.md](readme file) has info about how to connect everything.
+The [readme file](README.md) has info about how to connect everything.
+
+## Actual code
+
+Please refer to the [readme file](README.md). The library tries to factorize the animation code, so you can write new ones, and use the new animation whether you control the LED matrix directly from SPI, or by BLE through the genuine board.
 
 # Future research
 
-Being able to sniff the BLE traffic between the android app and the original board could be fun. I'd love to be able to actually push a new firmware of mine on the Dialog chip.
+I'd love to be able to actually push a new firmware of mine on the Dialog chip
 
-The Led matrix chip has a bunch of fun functionalities such as 8 frame animations, 'breathing' mode.
+The Led matrix chip has a bunch of fun functionalities such as 8 frame animations, 'breathing' mode, would be fun to actually use these for fancy demo-like effects.
 
-I think the current approach for displaying some kind of spectrum on the fret board is listening to you play using the phone's microphone, then tell over bluetooth what data to display. It would be fun to have a mic connected on the Analog PIN of the Feather board to do the analysis there.
+I think the current approach for displaying some kind of spectrum on the fret board is listening to you play using the phone's microphone, then send over bluetooth what data to display. It would be fun to have a mic connected on the Analog PIN of the Feather board to do the fourier transform there.
 
 Add more animations!
+
+Also talk to the Feather board via bluetooth, using a new protocol that would allow setting various PWM values for all LEDs and such.
