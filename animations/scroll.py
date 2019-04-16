@@ -39,7 +39,7 @@ class ScrollAnimator(Animator):
     Args:
       text(str): the text to display.
     """
-    self._scrolldata += self._TextToBytes(text)
+    self._scrolldata = self._TextToBytes(text)
 
   def Draw(self):
     for x in range(0, self._populele.NB_COLS):
