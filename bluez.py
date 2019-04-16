@@ -288,7 +288,9 @@ bluez_helper.SetUp()
 populele = BlueZPopulele(bluez_helper.SearchDeviceWithUUID(DIALOG_UUID))
 populele.Setup()
 
+# Set animation
 animation = scroll.ScrollAnimator(populele)
+animation.SetText('AWOO')
 
 while True:
   #populele.DebugFrame()
