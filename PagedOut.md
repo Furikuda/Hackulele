@@ -1,33 +1,32 @@
 # Hackulele
 
-Because all things got to be smart, China gifted us with a SmartUkulele called Populele [0]
+(more info on this on the Github page)
 
-The point is to use a bloated, kind of ugly app [1] to connect to your uke over bluetooth, sending commands to blink the lights behind the frets. The app gamifies the learning process, has songbooks and stuff, but as all "smart" things go, everyone on the App's page complains about unreliable BT connection, bugs, etc.
+Because all things got to be smart, China gifted us with a Smart-Ukulele called Populele.
 
-## Closer look at the Smart inside
+The point is to use a bloated, kind of ugly app to connect to your uke over bluetooth, sending commands to blink the lights behind the frets. The app gamifies the learning process, has songbooks and stuff, but as all "smart" things go, everyone on the App's page complains about unreliable BT connection, bugs, etc.
 
-The Smartness is hidden in the instrument and reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
+## Closer look at The Smart
+
+The "Smart" part is easy to pull off from inside the instrument and reveals a boardy board, a lipo-y lipo, and cabley cables to connect to the blinky blink side.
 
 <img src="./docs/pics/top.jpg" width="300">
 
 <img src="./docs/pics/bottom.jpg" width="300">
 
-Main chip there is a Dialog 14580 [2]. Unfortunately, according to my logic analyzer, both TX/RX (for serial) & SDIO/SCK (for JTAG) aren't active: no easy hacking for me :'(
+Main chip there is a Dialog 14580. Unfortunately, according to my logic analyzer, both TX/RX (for serial) & SDIO/SCK (for JTAG) aren't active: no easy hacking for me :'( I couldn't get any intel on the tiny thing on the side that's marked '5F2 A71 TOG'.
 
 ## BLE sniffing
 
-I use the nRF52 devKit by Nordic [4] to sniff the BLE traffic. The output is verbose, the uke sends multiple heartbeats per second... LED matrix state is set by a 19 bytes packet sent to a GATT service  (attribute handle 0x0024, UUID is 0000dc8600001000800000805f9b34fb). 24 bits per string, as so:
+I use the nRF52 devKit by Nordic to sniff the BLE traffic. The output is verbose, the uke sends multiple heartbeats per second, for some reason, probably to drain the battery faster.
+
+The Uke's LED matrix state is set by a 19 bytes packet sent to a GATT service  (attribute handle 0x0024, UUID is 0000dc8600001000800000805f9b34fb). 3 bytes per string (G, C, E and A) are sent to set 18 LEDs (only the 18 MSB are used) as so:
 
 ```
-f1 GG GG GG CC CC CC EE EE EE AA AA AA 00 00 00 00 00 00
-^^ Header
-   ^^ ^^ ^^ State of the G string LEDs
-            ^^ ^^ ^^ State of the C string LEDs
-                     ^^ ^^ ^^ State of the E string LEDs
-                              ^^ ^^ ^^ State of the A string LEDS
+f1 AA AA AA EE EE EE CC CC CC GG GG GG 00 00 00 00 00 00
 ```
 
-The `bluez.py` script [3] will let you send these packets through BlueZ.
+The `bluez.py` script will let you send these packets through BlueZ.
 
 ## Inside the fret board.
 
@@ -54,31 +53,31 @@ Hooking up your logic analyzer on SDA/SCL you get a listing of the SPI commands 
 *snip*
 ```
 
-No idea why there are all these 0x08, they are nowhere in the IS31 doc, trying to fix weird timing issues maybe? Or just sloppy coding? I just ignored and wote a lib, which is in the repo [3]. The annoying part was finding what LED address corresponded to where on the fretboard.
+No idea why the chip sends all these 0x08 commands, as they are nowhere in the IS31 doc, trying to fix weird timing issues maybe? Or just sloppy coding? I just ignored and wote a CircuitPython lib to talk to the LED matrix (`main.py`). The annoying part was finding what LED address corresponded to where on the fretboard.
 
-Pull SCL & SDA up with a 4.7K resistor, ground INT, and set SDB as a 'enable' pin, to connect to the LED matrix.
+To connect to the LED matrix, pull SCL & SDA up with a 4.7K resistor, ground INT, and set SDB as a 'enable' pin. The 5V VCC will need more than 50mA, so don't use an arduino GPIO.
 ```
-          ___      ___
-    _____|   |____|   |______
-   |                         |
-   |    5V     GND     SCL   |
-   |                         |
-   |    SDB    INT     SDA   |
-   |_________________________|
+female/uke side
+       ___      ___
+ _____|   |____|   |______
+|                         |
+|    5V     GND     SCL   |
+|                         |
+|    SDB    INT     SDA   |
+|_________________________|
 
 ```
 
-and you get full control of the LEDs PWM and super fast animation update without the painful BLE setup.
+You now get full control of the LEDs PWM and super fast animation update without the painful BLE setup.
 
 ## Animations!
 
-This project is heavily influenced by the Best Badge Ever [5]. Both the CircuitPython `main.py` and BlueZ `bluez.py` scripts use the same Animator objects. See `animations/scroll.py` for an example.
+The library on the repo uses separate 'Animator' objects to update the internal LED state. It is heavily influenced by the Best Badge Ever (2018 DCFurs badge).
 
-# Links
+Both the CircuitPython `main.py` and BlueZ `bluez.py` scripts use the same Animator objects. See `animations/scroll.py` for an example.
 
-[0] https://popuband.com/products/populele-with-accessory 
-[1] https://play.google.com/store/apps/details?id=com.gt.populeleinternational&hl=en&showAllReviews=true
-[2] https://support.dialog-semiconductor.com/downloads/DA14580_DS_v3.1.pdf 
-[3] https://github.com/Furikuda/hackulele
-[4] https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52-DK 
-[5] https://github.com/oskirby/dc26-fur-scripts
+## More info
+
+Link to repo with more info, resources and docs: https://github.com/Furikuda/hackulele
+
+You'll learn about the infamous "Page Night" (that comes after the eighth Page, and has the 0x0B identifier), and some ideas for more research.
