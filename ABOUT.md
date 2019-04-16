@@ -79,7 +79,7 @@ It is kind of super verbose, the populele keeps sending multiple heartbeats per 
 To set the state of LEDs, the phone sends 19 bytes of data on the GATT service with attribute handle `0x0024` (UUID is `0000dc8600001000800000805f9b34fb` ). A normal frame looks like so:
 
 ```
-f1 GG GG GG CC CC CC EE EE EE AA AA AA 00 00 00 00 00 00
+f1 AA AA AA EE EE EE CC CC CC GG GG GG 00 00 00 00 00 00
 ^^ Header
    ^^ ^^ ^^ State of the G string LEDs
             ^^ ^^ ^^ State of the C string LEDs
