@@ -30,7 +30,7 @@ The `bluez.py` script will let you send these packets through BlueZ.
 
 ## Inside the fret board.
 
-Hooking up your logic analyzer on SDA/SCL you get a listing of the SPI commands sent to the IS31FL3731 chip at boot time (address 0x74):
+Hooking up your logic analyzer on SDA/SCL you get a listing of the i2c commands sent to the IS31FL3731 chip at boot time (address 0x74):
 
 ```
 74 08

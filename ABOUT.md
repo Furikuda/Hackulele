@@ -286,7 +286,7 @@ The [readme file](README.md) has info about how to connect everything.
 
 ## Actual code
 
-Please refer to the [readme file](README.md). The library tries to factorize the animation code, so you can write new ones, and use the new animation whether you control the LED matrix directly from SPI, or by BLE through the genuine board.
+Please refer to the [readme file](README.md). The library tries to factorize the animation code, so you can write new ones, and use the new animation whether you control the LED matrix directly from i2c, or by BLE through the genuine board.
 
 # Future research
 

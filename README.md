@@ -35,7 +35,7 @@ Then just hack the script to your liking and run `python bluez.py`.
 
 Pros:
 
- * Full LED matrix control over SPI
+ * Full LED matrix control over i2c
  * Fast & reliable
 
 Cons:
